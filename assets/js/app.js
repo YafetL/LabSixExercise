@@ -65,7 +65,67 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', addNewTask);
     sortAscending.addEventListener('click', Ascending);
     sortDescending.addEventListener('click', Dscending);
-    
+
+    function Ascending() {
+        //remove all items (Already Sorted)
+        displayTaskList();   
+    }
+    function Dscending() {
+        while (taskList.firstChild) {
+            taskList.removeChild(taskList.firstChild);
+        }
+        let objectStore = DB.transaction('tasks').objectStore('tasks');
+        
+        let keyRange = IDBKeyRange.upperBound(addedItems);
+        let request = objectStore.openCursor(keyRange, "prev");
+        request.onsuccess = function(e) {
+            // assign the current cursor
+            let cursor = e.target.result;
+
+            if (cursor) {
+                // Create an li element when the user adds a task 
+                const li = document.createElement('li');
+                //add Attribute for delete 
+                li.setAttribute('data-task-id', cursor.value.id);
+                // Adding a class
+                li.className = 'collection-item';
+                // Create text node and append it
+                 
+                li.appendChild(document.createTextNode(cursor.value.taskName));
+                // Extract The Date from the database
+                const date = document.createElement('span');
+                date.style.position = "absolute";
+                date.style.left = "50%";
+                date.style.transform = "translateX(-50%)";
+                const dateData = cursor.value.dateCreated;
+                dateArr.push(dateData);
+                var year = dateData.getFullYear();
+                var month = dateData.getUTCMonth() + 1;
+                var day = dateData.getUTCDate();
+                var localTime = dateData.toLocaleTimeString()
+                var newDate = year + "/" + month + "/" + day + " " + localTime; 
+                date.innerHTML = newDate;
+
+                li.appendChild(date);      
+                
+                // Create new element for the link 
+                const link = document.createElement('a');
+                // Add class and the x marker for a 
+                link.className = 'delete-item secondary-content';
+                link.innerHTML = `
+                 <i class="fa fa-remove"></i>
+                &nbsp;
+                <a href="edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+                `;
+                // Append link to li
+                li.appendChild(link);
+                // Append to UL 
+                taskList.appendChild(li);
+                cursor.continue();
+            }
+        }
+    }
+
     function addNewTask(e) {
         e.preventDefault();
 
@@ -77,15 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // create a new object with the form info
-        let newTask = {
-            taskname: taskInput.value,
+        function newTask(dateCreated, taskName) {
+            this.dateCreated = dateCreated;
+            this.taskName = taskName;
         }
 
         // Insert the object into the database 
+        addedItems++;
+        localStorage.setItem("Added Items", addedItems);
+        // Insert the object into the database 
         let transaction = DB.transaction(['tasks'], 'readwrite');
         let objectStore = transaction.objectStore('tasks');
-
-        let request = objectStore.add(newTask);
+      
+        let request = objectStore.add(new Task(new Date(), taskInput.value));
 
         // on success
         request.onsuccess = () => {

@@ -189,6 +189,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.className = 'collection-item';
                 // Create text node and append it 
                 li.appendChild(document.createTextNode(cursor.value.taskname));
+                // Extract The Date from the database
+                const date = document.createElement('span');
+                date.style.position = "absolute";
+                date.style.left = "50%";
+                date.style.transform = "translateX(-50%)";
+                const dateData = cursor.value.dateCreated;
+                var year = dateData.getFullYear();
+                var month = dateData.getUTCMonth() + 1;
+                var day = dateData.getUTCDate();
+                var localTime = dateData.toLocaleTimeString()
+                var newDate = year + "/" + month + "/" + day + " " + localTime; 
+                date.innerHTML = newDate;
+
+                li.appendChild(date);      
+                
                 // Create new element for the link 
                 const link = document.createElement('a');
                 // Add class and the x marker for a 
@@ -196,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.innerHTML = `
                  <i class="fa fa-remove"></i>
                 &nbsp;
-                <a href="/Lesson 04 [Lab 06]/Finished/edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+                <a href="edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
                 `;
                 // Append link to li
                 li.appendChild(link);

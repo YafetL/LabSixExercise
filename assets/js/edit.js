@@ -5,6 +5,9 @@ const taskInput = document.querySelector('#task'); //the task input text field
 //read from q string 
 const urlParams = new URLSearchParams(window.location.search);
 const id = Number(urlParams.get('id'));
+const date = urlParams.get("date");
+var datestr = new Date(date.slice(0, date.indexOf('G')-1));
+
 //DB
 var DB;
 
@@ -37,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         request.onsuccess = function(event) {
             if (request.result) {
-                taskInput.value = request.result.taskname;
+                taskInput.value = request.result.taskName;
 
             } else {
                 console.log('No data record');
@@ -71,9 +74,25 @@ document.addEventListener('DOMContentLoaded', () => {
         2. Use the id on put method of index db
         
         */
+       function newTask(dateCreated, taskName, id) {
+            this.dateCreated = dateCreated;
+            this.taskName = taskName;
+            this.id = id;
+        }
 
+        let transaction = DB.transaction("tasks", 'readwrite');
+        let objectStore = transaction.objectStore("tasks");
+        
+        
+        let request = objectStore.put(new newTask(datestr,taskInput.value,id));
+        request.onsuccess = function() {
+            console.log("Task Successfully updated");
+        };
+        request.onerror = function() {
+            console.log("Task Not updated");
+        }
         history.back();
-    }
+        }
 
 
 
